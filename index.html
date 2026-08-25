@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Grunwald & Puzzli Gra</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.png">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: #111; touch-action: none; }
+        
+        #screen-start, #screen-game, #screen-over {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
+        }
+        
+        #screen-start, #screen-game { background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.7)), url('tlo.jpg') no-repeat center center/cover; }
+        #screen-over { background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.85)), url('tlo_koncowe.jpg') no-repeat center center/cover; display: none; overflow-y: auto; justify-content: flex-start; padding-top: 30px; padding-bottom: 40px; }
+        
+        .box { background: rgba(0, 0, 0, 0.88); border: 2px solid #d4af37; border-radius: 15px; padding: 22px; width: 100%; max-width: 360px; box-shadow: 0 0 25px rgba(212, 175, 55, 0.35); color: white; margin-bottom: 16px; }
+        h1 { color: #d4af37; font-size: 22px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 0 10px rgba(212,175,55,0.5); }
+        p { font-size: 14px; margin-bottom: 12px; color: #ddd; line-height: 1.4; }
+        
+        input[type="text"] { width: 100%; padding: 13px; border-radius: 25px; border: 2px solid #d4af37; background: #222; color: white; text-align: center; font-size: 16px; margin-bottom: 14px; outline: none; }
+        button { background: linear-gradient(135deg, #d4af37, #aa841b); color: #111; border: none; padding: 13px 28px; font-size: 16px; font-weight: bold; border-radius: 25px; cursor: pointer; transition: transform 0.1s; width: 100%; box-shadow: 0 4px 15px rgba(212,175,55,0.4); }
+        button:active { transform: scale(0.96); }
+        button.secondary { background: linear-gradient(135deg, #555, #333); color: #eee; margin-top: 10px; }
+        
+        #screen-game { display: none; justify-content: flex-start; }
+        #hud { width: 100%; max-width: 380px; display: flex; justify-content: space-between; align-items: center; color: white; font-weight: bold; font-size: 17px; padding: 12px 8px; z-index: 10; text-shadow: 0 2px 5px black; position: relative; }
+        #game-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        
+        #player-container { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 130px; height: auto; display: flex; flex-direction: column; align-items: center; z-index: 5; pointer-events: none; }
+        #piana-stream { width: 28px; height: 0px; background: linear-gradient(to top, rgba(255,255,255,0.95), rgba(230,242,255,0.7)); border-radius: 14px 14px 0 0; box-shadow: 0 0 18px #fff, inset 0 0 8px #e6f2ff; transition: height 0.04s linear; margin-bottom: -2px; }
+        #player-image { width: 110px; height: auto; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }
+        
+        .leaderboard-table { width: 100%; margin: 12px 0; border-collapse: collapse; font-size: 13px; }
+        .leaderboard-table th { color: #d4af37; border-bottom: 2px solid #d4af37; padding: 6px 4px; }
+        .leaderboard-table td { padding: 6px 4px; border-bottom: 1px solid #333; }
+        .leaderboard-table tr:nth-child(1) td { color: #ffd700; font-weight: bold; }
+        .leaderboard-table tr:nth-child(2) td { color: #c0c0c0; }
+        .leaderboard-table tr:nth-child(3) td { color: #cd7f32; }
+        
+        .stars { display: flex; justify-content: center; gap: 8px; margin: 12px 0; font-size: 32px; cursor: pointer; }
+        .star { color: #444; transition: color 0.15s, transform 0.15s; }
+        .star.active { color: #ffcc00; text-shadow: 0 0 12px #ffcc00; transform: scale(1.1); }
+        
+        #blow-hint { position: absolute; bottom: 160px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 13px; z-index: 6; text-shadow: 0 1px 3px black; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
+        #blow-hint.show { opacity: 1; }
+        
+        .combo { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); color: #d4af37; font-size: 22px; font-weight: bold; text-shadow: 0 0 10px #000; z-index: 8; opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; }
+        .combo.show { opacity: 1; transform: translateX(-50%) scale(1.2); }
+    </style>
+</head>
+<body>
+
+    <!-- EKRAN STARTOWY -->
+    <div id="screen-start">
+        <div class="box">
+            <h1>Grunwald & Puzzli</h1>
+            <p>Wpisz swoje imię i zmierz się w dmuchaniu z mieszkańcami Olecka! Łap przysmaki, uważaj na osy, rachunki i puzzle.</p>
+            <input type="text" id="player-name" placeholder="Twoje imię lub nick" maxlength="12" autocomplete="off">
+            <button onclick="requestMicAndStart()">Zatwierdź i dmuchaj 🌬️</button>
+            <button class="secondary" onclick="startWithoutMic()">Graj bez mikrofonu (dotyk)</button>
+        </div>
+    </div>
+
+    <!-- EKRAN GRY -->
+    <div id="screen-game">
+        <div id="hud">
+            <div id="hud-score">Punkty: 0</div>
+            <div id="hud-lives">❤️❤️❤️</div>
+        </div>
+        <canvas id="game-canvas"></canvas>
+        <div id="blow-hint">DMUCHAJ W MIKROFON!</div>
+        <div class="combo" id="combo-text"></div>
+        <div id="player-container">
+            <div id="piana-stream"></div>
+            <img id="player-image" src="nalewak.png" alt="Nalewak">
+        </div>
+    </div>
+
+    <!-- EKRAN GAME OVER -->
+    <div id="screen-over">
+        <div class="box" style="margin-top:10px;">
+            <h1 style="color:#ff4d4d;">Koniec tchu!</h1>
+            <p id="final-score" style="font-size:18px; font-weight:bold;"></p>
+            <p id="share-rank-info" style="font-size:13px; color:#d4af37; margin:8px 0;"></p>
+            <button id="share-btn" onclick="shareResult()" style="background:linear-gradient(135deg,#25D366,#128C7E); margin-top:8px;">
+                Udostępnij wynik 📤
+            </button>
+        </div>
+        
+        <div class="box">
+            <h1>🏆 Ranking Głodomorów</h1>
+            <p style="font-size:12px; color:#aaa; margin-bottom:4px;">Od 20. miejsca do 1. miejsca (etapy)</p>
+            <p id="leader-diff" style="font-size:13px; color:#d4af37; margin-bottom:8px;"></p>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr><th>Msc.</th><th>Nick</th><th>Wynik</th></tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    <tr><td colspan="3">Ładowanie rankingu...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="box" id="rating-box">
+            <h1>Oceń nas na Google ⭐</h1>
+            <p style="font-size:18px; margin:8px 0; color:#ffcc00;">4,0 ★ <span style="font-size:13px; color:#aaa;">(340 ocen)</span></p>
+            <div class="stars" id="star-container" style="cursor:pointer;" onclick="openGoogleReview()">
+                <span class="star active">★</span>
+                <span class="star active">★</span>
+                <span class="star active">★</span>
+                <span class="star active">★</span>
+                <span class="star">★</span>
+            </div>
+            <p style="font-size:12px; color:#aaa; margin-top:6px;">Kliknij gwiazdki lub przycisk poniżej</p>
+            <a id="google-review-btn" href="https://g.page/r/CZON1XODkGVCEAg/review" target="_blank" rel="noopener"
+               style="display:inline-block; background:#4285F4; color:white; padding:12px 20px; border-radius:25px; text-decoration:none; font-weight:bold; margin-top:10px; font-size:14px; box-shadow:0 4px 15px rgba(66,133,244,0.4);">
+               Zostaw opinię na Google
+            </a>
+        </div>
+
+        <div class="box">
+            <p>W Pubie Grunwald & 12 Puzzli Cafe na placu Wolności nie musisz dmuchać na zimne! Wpadnij na kartacze i pizzę na żywo!</p>
+            <button onclick="restartGame()">Zagraj jeszcze raz 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // ========== KONFIG ==========
+        // GLOBALNY ranking przez JSONBin.io (darmowy)
+        const JSONBIN_ID = "6a8ccbecf5f4af5e293e09f7";
+        const JSONBIN_KEY = "$2a$10$q.XvxFN60TJYTeocrNlz6e0EzWroZA5FrkqwOPsHQJETbGom.okiu";
+        const JSONBIN_URL = "https://api.jsonbin.io/v3/b/" + JSONBIN_ID;
+        const STORAGE_KEY = "grunwald_puzzli_leaderboard_v1"; // fallback lokalny
+        const RATING_KEY = "grunwald_puzzli_ratings_v1";
+
+        let playerName = "";
+        let score = 0;
+        let lives = 3;
+        let audioContext = null, analyser = null, microphone = null, dataArray = null;
+        let micStream = null;
+        let gameActive = false;
+        let items = [];
+        let speedMultiplier = 1;
+        let gameLoopId = null;
+        let spawnTimeoutId = null;
+        let useMic = true;
+        let currentVolume = 0;
+        let foamHeight = 0;
+        let combo = 0;
+        let lastCatchTime = 0;
+        let touchHold = false;
+        let lastBoard = []; // ostatni pobrany ranking globalny
+
+        const canvas = document.getElementById("game-canvas");
+        const ctx = canvas.getContext("2d");
+        const pianaEl = document.getElementById("piana-stream");
+        const blowHint = document.getElementById("blow-hint");
+        const comboEl = document.getElementById("combo-text");
+
+        // Obrazki (dobre)
+        const images = {
+            pizza: new Image(),
+            kartacz: new Image(),
+            placek: new Image(),
+            piwo: new Image()
+        };
+        images.pizza.src = 'pizza.png';
+        images.kartacz.src = 'kartacz.png';
+        images.placek.src = 'placek.png';
+        images.piwo.src = 'piwo.png';
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // ========== START ==========
+        function requestMicAndStart() {
+            playerName = document.getElementById("player-name").value.trim();
+            if (!playerName) { alert("Wpisz swoje imię przed startem!"); return; }
+
+            useMic = true;
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                micStream = stream;
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+                analyser.fftSize = 256;
+                analyser.smoothingTimeConstant = 0.6;
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                startGame();
+            }).catch(err => {
+                console.warn(err);
+                alert("Brak dostępu do mikrofonu. Możesz grać trybem dotykowym.");
+                useMic = false;
+                startGame();
+            });
+        }
+
+        function startWithoutMic() {
+            playerName = document.getElementById("player-name").value.trim();
+            if (!playerName) { alert("Wpisz swoje imię przed startem!"); return; }
+            useMic = false;
+            startGame();
+        }
+
+        function startGame() {
+            document.getElementById("screen-start").style.display = "none";
+            document.getElementById("screen-game").style.display = "flex";
+            document.getElementById("screen-over").style.display = "none";
+            
+            score = 0;
+            lives = 3;
+            items = [];
+            speedMultiplier = 1;
+            combo = 0;
+            foamHeight = 0;
+            gameActive = true;
+            
+            updateHUD();
+            showBlowHint();
+            
+            if (gameLoopId) cancelAnimationFrame(gameLoopId);
+            if (spawnTimeoutId) clearTimeout(spawnTimeoutId);
+            
+            gameLoop();
+            scheduleSpawn();
+            
+            // Touch / mouse hold for non-mic mode
+            canvas.addEventListener('touchstart', onHoldStart, { passive: false });
+            canvas.addEventListener('touchend', onHoldEnd, { passive: false });
+            canvas.addEventListener('mousedown', onHoldStart);
+            canvas.addEventListener('mouseup', onHoldEnd);
+            canvas.addEventListener('mouseleave', onHoldEnd);
+        }
+
+        function onHoldStart(e) {
+            if (!useMic && gameActive) {
+                e.preventDefault();
+                touchHold = true;
+            }
+        }
+        function onHoldEnd(e) {
+            touchHold = false;
+        }
+
+        function showBlowHint() {
+            if (useMic) {
+                blowHint.textContent = "DMUCHAJ W MIKROFON!";
+            } else {
+                blowHint.textContent = "TRZYMAJ PALEC LUB KLIKNIJ, ABY DMUCHAĆ";
+            }
+            blowHint.classList.add("show");
+            setTimeout(() => blowHint.classList.remove("show"), 3500);
+        }
+
+        // ========== HUD ==========
+        function updateHUD() {
+            document.getElementById("hud-score").innerText = "Punkty: " + score;
+            document.getElementById("hud-lives").innerText = "❤️".repeat(lives) + "🖤".repeat(3 - lives);
+        }
+
+        // ========== SPAWN ==========
+        function scheduleSpawn() {
+            if (!gameActive) return;
+            const baseDelay = Math.max(450, 1100 - score * 4);
+            spawnTimeoutId = setTimeout(() => {
+                spawnItem();
+                scheduleSpawn();
+            }, baseDelay / speedMultiplier);
+        }
+
+        function spawnItem() {
+            if (!gameActive) return;
+            const types = [
+                { asset: 'pizza', isGood: true, label: '🍕', points: 15 },
+                { asset: 'kartacz', isGood: true, label: '🥟', points: 12 },
+                { asset: 'placek', isGood: true, label: '🥔', points: 10 },
+                { asset: 'piwo', isGood: true, label: '🍺', points: 18 },
+                { asset: 'osa', isGood: false, label: '🐝', points: 0 },
+                { asset: 'rachunek', isGood: false, label: '💸', points: 0 },
+                { asset: 'puzzle', isGood: false, label: '🧩', points: 0 }
+            ];
+            
+            // Częściej dobre na początku, więcej złych później
+            let pool = types;
+            if (score < 40) {
+                pool = types.filter(t => t.isGood).concat(types.filter(t => t.isGood));
+            } else if (score > 120) {
+                pool = types.concat(types.filter(t => !t.isGood));
+            }
+            
+            const type = pool[Math.floor(Math.random() * pool.length)];
+            const size = 48 + Math.random() * 18;
+            
+            items.push({
+                x: Math.random() * (canvas.width - size - 20) + 10,
+                y: -size - 10,
+                size: size,
+                speed: (1.8 + Math.random() * 1.6) * speedMultiplier,
+                asset: type.asset,
+                isGood: type.isGood,
+                label: type.label,
+                points: type.points,
+                rotation: Math.random() * Math.PI * 2,
+                rotSpeed: (Math.random() - 0.5) * 0.08
+            });
+        }
+
+        // ========== GŁOŚNOŚĆ MIKROFONU ==========
+        function getMicVolume() {
+            if (!analyser || !dataArray) return 0;
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            // Bierzemy niższe częstotliwości (dmuchanie)
+            const len = Math.floor(dataArray.length * 0.4);
+            for (let i = 0; i < len; i++) sum += dataArray[i];
+            const avg = sum / len;
+            // Normalizacja + próg
+            let vol = Math.max(0, (avg - 12) / 90);
+            return Math.min(1, vol);
+        }
+
+        // ========== GŁÓWNA PĘTLA ==========
+        function gameLoop() {
+            if (!gameActive) return;
+            
+            // Głośność / hold
+            if (useMic) {
+                currentVolume = getMicVolume();
+            } else {
+                currentVolume = touchHold ? 0.85 : 0;
+            }
+            
+            // Płynna wysokość piany
+            const targetHeight = currentVolume * Math.min(canvas.height * 0.55, 320);
+            foamHeight += (targetHeight - foamHeight) * 0.35;
+            pianaEl.style.height = Math.max(0, foamHeight) + "px";
+            
+            // Przyspieszenie gry
+            speedMultiplier = 1 + Math.min(1.8, score / 180);
+            
+            // Update items
+            for (let i = items.length - 1; i >= 0; i--) {
+                const it = items[i];
+                it.y += it.speed;
+                it.rotation += it.rotSpeed;
+                
+                // Kolizja z pianą
+                if (checkCollision(it)) {
+                    if (it.isGood) {
+                        score += it.points;
+                        combo++;
+                        lastCatchTime = performance.now();
+                        showCombo();
+                        // mały boost piany
+                        foamHeight = Math.min(foamHeight + 20, canvas.height * 0.5);
+                    } else {
+                        lives--;
+                        combo = 0;
+                        // wstrząs
+                        document.getElementById("screen-game").style.animation = "none";
+                        void document.getElementById("screen-game").offsetWidth;
+                        document.getElementById("screen-game").style.animation = "shake 0.3s";
+                    }
+                    items.splice(i, 1);
+                    updateHUD();
+                    if (lives <= 0) {
+                        endGame();
+                        return;
+                    }
+                    continue;
+                }
+                
+                // Spadło poza ekran
+                if (it.y > canvas.height + 40) {
+                    if (it.isGood) {
+                        // stracone dobre = nic (albo -1 życie jeśli chcesz hardcore)
+                    }
+                    items.splice(i, 1);
+                }
+            }
+            
+            // Combo timeout
+            if (combo > 0 && performance.now() - lastCatchTime > 2200) {
+                combo = 0;
+            }
+            
+            draw();
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        function checkCollision(it) {
+            if (foamHeight < 25) return false;
+            
+            const streamX = canvas.width / 2;
+            const streamW = 38;
+            const streamTop = canvas.height - 95 - foamHeight; // przybliżona pozycja góry piany
+            const streamBottom = canvas.height - 70;
+            
+            const itemCenterX = it.x + it.size / 2;
+            const itemCenterY = it.y + it.size / 2;
+            
+            // Czy item jest w poziomie strumienia
+            if (Math.abs(itemCenterX - streamX) > streamW + it.size * 0.35) return false;
+            
+            // Czy przecina się z wysokością piany
+            const itemBottom = it.y + it.size;
+            const itemTop = it.y;
+            
+            return itemBottom > streamTop && itemTop < streamBottom;
+        }
+
+        function showCombo() {
+            if (combo < 2) return;
+            comboEl.textContent = "COMBO x" + combo + "!";
+            comboEl.classList.add("show");
+            setTimeout(() => comboEl.classList.remove("show"), 700);
+        }
+
+        // ========== RYSOWANIE ==========
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            items.forEach(it => {
+                ctx.save();
+                ctx.translate(it.x + it.size / 2, it.y + it.size / 2);
+                ctx.rotate(it.rotation);
+                
+                if (images[it.asset] && images[it.asset].complete && images[it.asset].naturalWidth > 0) {
+                    ctx.drawImage(images[it.asset], -it.size / 2, -it.size / 2, it.size, it.size);
+                } else {
+                    // Fallback emoji / kółko
+                    ctx.font = Math.floor(it.size * 0.85) + "px serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(it.label, 0, 0);
+                }
+                
+                // delikatna poświata dla złych
+                if (!it.isGood) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, it.size * 0.55, 0, Math.PI * 2);
+                    ctx.strokeStyle = "rgba(255,60,60,0.4)";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            });
+        }
+
+        // ========== KONIEC GRY ==========
+        function endGame() {
+            gameActive = false;
+            if (gameLoopId) cancelAnimationFrame(gameLoopId);
+            if (spawnTimeoutId) clearTimeout(spawnTimeoutId);
+            
+            // zatrzymaj mic
+            if (micStream) {
+                micStream.getTracks().forEach(t => t.stop());
+                micStream = null;
+            }
+            if (audioContext) {
+                audioContext.close().catch(() => {});
+                audioContext = null;
+            }
+            
+            pianaEl.style.height = "0px";
+            
+            document.getElementById("screen-game").style.display = "none";
+            document.getElementById("screen-over").style.display = "flex";
+            
+            document.getElementById("final-score").innerText = 
+                playerName + ", Twój wynik: " + score + " punktów!";
+            
+            // zapis + pobranie globalnego rankingu
+            document.getElementById("leaderboard-body").innerHTML = "<tr><td colspan='3'>Ładowanie rankingu globalnego...</td></tr>";
+            saveScore(playerName, score).then(() => loadLeaderboard()).catch(() => loadLeaderboard());
+            // oceny idą na Google
+        }
+
+        // ========== RANKING GLOBALNY (JSONBin) ==========
+        async function saveScore(name, sc) {
+            let board = [];
+            try {
+                // Pobierz aktualny ranking globalny
+                const res = await fetch(JSONBIN_URL + "/latest", {
+                    headers: { "X-Master-Key": JSONBIN_KEY }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    board = (data.record && data.record.records) ? data.record.records : [];
+                }
+            } catch (e) {
+                console.warn("Nie udało się pobrać rankingu, używam lokalnego", e);
+                try { board = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch(_) {}
+            }
+            
+            board.push({ name: String(name).slice(0, 12), score: sc, ts: Date.now() });
+            board.sort((a, b) => b.score - a.score);
+            // usuń duplikaty nicków (zostaw najlepszy wynik)
+            const seen = new Set();
+            board = board.filter(r => {
+                if (seen.has(r.name.toLowerCase())) return false;
+                seen.add(r.name.toLowerCase());
+                return true;
+            });
+            board = board.slice(0, 20);
+            
+            // Zapisz lokalnie jako backup
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(board)); } catch(_) {}
+            
+            // Zapisz globalnie
+            try {
+                await fetch(JSONBIN_URL, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Master-Key": JSONBIN_KEY
+                    },
+                    body: JSON.stringify({ records: board })
+                });
+            } catch (e) {
+                console.warn("Nie udało się zapisać globalnie", e);
+            }
+        }
+
+        async function loadLeaderboard() {
+            let board = [];
+            try {
+                const res = await fetch(JSONBIN_URL + "/latest", {
+                    headers: { "X-Master-Key": JSONBIN_KEY }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    board = (data.record && data.record.records) ? data.record.records : [];
+                }
+            } catch (e) {
+                console.warn("Błąd pobierania rankingu", e);
+            }
+            
+            // Fallback lokalny
+            if (!board || board.length === 0) {
+                try { board = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch(_) { board = []; }
+            }
+            
+            // posortuj i utnij
+            board.sort((a, b) => b.score - a.score);
+            board = board.slice(0, 20);
+            lastBoard = board;
+            
+            const tbody = document.getElementById("leaderboard-body");
+            const diffEl = document.getElementById("leader-diff");
+            const shareInfo = document.getElementById("share-rank-info");
+            
+            if (board.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='3'>Brak rekordów – bądź pierwszy!</td></tr>";
+                if (diffEl) diffEl.innerText = "";
+                return;
+            }
+            
+            const topScore = board[0].score;
+            // pozycja gracza w TOP 20
+            let myPos = -1;
+            for (let i = 0; i < board.length; i++) {
+                if (board[i].name.toLowerCase() === playerName.toLowerCase() && board[i].score === score) {
+                    myPos = i + 1;
+                    break;
+                }
+            }
+            // fallback: znajdź po samym wyniku
+            if (myPos < 0) {
+                for (let i = 0; i < board.length; i++) {
+                    if (board[i].score <= score) { myPos = i + 1; break; }
+                }
+                if (myPos < 0 && score > 0) myPos = board.length + 1;
+            }
+            
+            if (diffEl) {
+                if (score >= topScore) {
+                    diffEl.innerHTML = "🥇 <b>JESTEŚ MISTRZEM GRUNWALDU! (1. miejsce)</b>";
+                } else {
+                    const brakuje = topScore - score;
+                    diffEl.innerHTML = "Do 1. miejsca brakuje Ci <b>" + brakuje + "</b> pkt";
+                }
+            }
+            
+            if (shareInfo) {
+                if (myPos === 1) {
+                    shareInfo.innerHTML = "🥇 Zająłeś <b>1. miejsce</b> w TOP 20!";
+                } else if (myPos > 0 && myPos <= 20) {
+                    shareInfo.innerHTML = "Twoja pozycja: <b>" + myPos + ". miejsce</b> w TOP 20";
+                } else if (board.length >= 20) {
+                    const minTop = board[board.length - 1].score;
+                    const brakuje = Math.max(0, minTop - score + 1);
+                    shareInfo.innerHTML = "Poza TOP 20 – brakuje <b>" + brakuje + "</b> pkt do wejścia";
+                } else {
+                    shareInfo.innerHTML = "Wynik zapisany w rankingu globalnym";
+                }
+            }
+            
+            let html = "";
+            
+            // ETAP 3: miejsca 11-20 (od 20 do 11)
+            const etap3 = board.slice(10, 20);
+            if (etap3.length > 0) {
+                html += `<tr><td colspan="3" style="background:#222; color:#888; font-size:11px; padding:8px 4px; text-align:center;">—— ETAP 3: miejsca 11–20 ——</td></tr>`;
+                for (let i = etap3.length - 1; i >= 0; i--) {
+                    const realPos = 10 + i + 1;
+                    const row = etap3[i];
+                    html += `<tr><td>${realPos}</td><td>${escapeHtml(row.name)}</td><td>${row.score}</td></tr>`;
+                }
+            }
+            
+            // ETAP 2: miejsca 4-10
+            const etap2 = board.slice(3, 10);
+            if (etap2.length > 0) {
+                html += `<tr><td colspan="3" style="background:#2a2a1a; color:#c9a227; font-size:11px; padding:8px 4px; text-align:center;">—— ETAP 2: miejsca 4–10 ——</td></tr>`;
+                for (let i = etap2.length - 1; i >= 0; i--) {
+                    const realPos = 3 + i + 1;
+                    const row = etap2[i];
+                    html += `<tr><td>${realPos}</td><td>${escapeHtml(row.name)}</td><td>${row.score}</td></tr>`;
+                }
+            }
+            
+            // ETAP 1: Mistrzowie 1-3 (od 3 do 1)
+            const etap1 = board.slice(0, 3);
+            if (etap1.length > 0) {
+                html += `<tr><td colspan="3" style="background:#3a2f00; color:#ffd700; font-size:12px; padding:8px 4px; text-align:center; font-weight:bold;">—— ETAP 1: MISTRZOWIE (1–3) ——</td></tr>`;
+                for (let i = etap1.length - 1; i >= 0; i--) {
+                    const realPos = i + 1;
+                    const row = etap1[i];
+                    const medal = realPos === 1 ? "🥇 " : (realPos === 2 ? "🥈 " : "🥉 ");
+                    const style = realPos === 1 ? ' style="color:#ffd700; font-weight:bold; font-size:15px;"' : (realPos === 2 ? ' style="color:#c0c0c0;"' : ' style="color:#cd7f32;"');
+                    html += `<tr${style}><td>${medal}${realPos}</td><td>${escapeHtml(row.name)}</td><td>${row.score}</td></tr>`;
+                }
+            }
+            
+            tbody.innerHTML = html;
+        }
+
+        function escapeHtml(t) {
+            const d = document.createElement("div");
+            d.textContent = t;
+            return d.innerHTML;
+        }
+
+        // ========== OCENY ==========
+        function buildShareText() {
+            let posText = "";
+            let myPos = -1;
+            for (let i = 0; i < lastBoard.length; i++) {
+                if (lastBoard[i].name.toLowerCase() === playerName.toLowerCase()) {
+                    myPos = i + 1;
+                    break;
+                }
+            }
+            if (myPos < 0) {
+                for (let i = 0; i < lastBoard.length; i++) {
+                    if (lastBoard[i].score <= score) { myPos = i + 1; break; }
+                }
+            }
+            
+            if (myPos === 1) {
+                posText = "🥇 Zająłem 1. miejsce w rankingu!";
+            } else if (myPos > 0 && myPos <= 20) {
+                posText = "Jestem na " + myPos + ". miejscu w TOP 20!";
+            } else if (lastBoard.length >= 20) {
+                const minTop = lastBoard[lastBoard.length - 1].score;
+                const brakuje = Math.max(0, minTop - score + 1);
+                posText = "Brakuje mi " + brakuje + " pkt do TOP 20.";
+            } else {
+                posText = "Wynik zapisany w globalnym rankingu.";
+            }
+            
+            return playerName + " – " + score + " pkt w grze Grunwald & Puzzli!\n" +
+                   posText + "\n" +
+                   "Pub Grunwald & 12 Puzzli Cafe, Olecko\n" +
+                   "Zagraj i przebij mój wynik!";
+        }
+
+        async function shareResult() {
+            const text = buildShareText();
+            const shareData = {
+                title: "Grunwald & Puzzli – mój wynik",
+                text: text
+            };
+            
+            try {
+                if (navigator.share) {
+                    await navigator.share(shareData);
+                } else if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    alert("Wynik skopiowany do schowka! Wklej go np. na Facebooku lub Messengerze.");
+                } else {
+                    // ostatni fallback
+                    prompt("Skopiuj swój wynik:", text);
+                }
+            } catch (err) {
+                // użytkownik anulował share – nic nie robimy
+                if (err && err.name !== "AbortError") {
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        alert("Wynik skopiowany do schowka!");
+                    } catch (_) {
+                        prompt("Skopiuj swój wynik:", text);
+                    }
+                }
+            }
+        }
+
+        function openGoogleReview() {
+            window.open("https://g.page/r/CZON1XODkGVCEAg/review", "_blank", "noopener");
+        }
+
+        function rateLokal(stars) {
+            // Przekierowanie na Google zamiast lokalnych ocen
+            openGoogleReview();
+        }
+
+        function loadRatings() {
+            // ocena Google jest hardkodowana w HTML
+        }
+
+        // ========== RESTART ==========
+        function restartGame() {
+            document.getElementById("screen-over").style.display = "none";
+            document.getElementById("screen-start").style.display = "flex";
+            document.getElementById("player-name").value = playerName;
+            const si = document.getElementById("share-rank-info");
+            if (si) si.innerHTML = "";
+            lastBoard = [];
+        }
+
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail', err));
+            });
+        }
+
+        // shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                20% { transform: translateX(-8px); }
+                40% { transform: translateX(8px); }
+                60% { transform: translateX(-6px); }
+                80% { transform: translateX(6px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

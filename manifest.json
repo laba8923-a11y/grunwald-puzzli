@@ -1,0 +1,18 @@
+{
+  "nav_type": "none",
+  "name": "Pub Grunwald & 12 Puzzli",
+  "short_name": "Grunwald Gra",
+  "start_url": "index.html",
+  "display": "fullscreen",
+  "background_color": "#111111",
+  "theme_color": "#d4af37",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+

@@ -1,0 +1,37 @@
+const CACHE_NAME = 'grunwald-puzzli-v3';
+
+const ASSETS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icon.png',
+  './tlo.jpg',
+  './tlo_koncowe.jpg',
+  './nalewak.png',
+  './pizza.png',
+  './kartacz.png',
+  './placek.png',
+  './piwo.png'
+];
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', (e) => {
+  e.respondWith(
+    caches.match(e.request).then((cached) => {
+      return cached || fetch(e.request).catch(() => cached);
+    })
+  );
+});
