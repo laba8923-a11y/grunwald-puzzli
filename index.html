@@ -129,19 +129,22 @@
         </div>
 
         <div class="box" id="rating-box">
-            <h1>Oceń nas na Google ⭐</h1>
-            <p style="font-size:18px; margin:8px 0; color:#ffcc00;">4,0 ★ <span style="font-size:13px; color:#aaa;">(340 ocen)</span></p>
+            <h1>Daj nam 5 gwiazdek ⭐</h1>
+            <p style="font-size:14px; margin:8px 0; color:#ffcc00; line-height:1.4;">
+                Za każdą ★ barman leje równo.<br>
+                Za 5 ★ – piana sama się nie kończy 🍻
+            </p>
             <div class="stars" id="star-container" style="cursor:pointer;" onclick="openGoogleReview()">
                 <span class="star active">★</span>
                 <span class="star active">★</span>
                 <span class="star active">★</span>
                 <span class="star active">★</span>
-                <span class="star">★</span>
+                <span class="star active">★</span>
             </div>
-            <p style="font-size:12px; color:#aaa; margin-top:6px;">Kliknij gwiazdki lub przycisk poniżej</p>
+            <p style="font-size:12px; color:#aaa; margin-top:6px;">Kliknij gwiazdki – Google otworzy się samo</p>
             <a id="google-review-btn" href="https://g.page/r/CZON1XODkGVCEAg/review" target="_blank" rel="noopener"
                style="display:inline-block; background:#4285F4; color:white; padding:12px 20px; border-radius:25px; text-decoration:none; font-weight:bold; margin-top:10px; font-size:14px; box-shadow:0 4px 15px rgba(66,133,244,0.4);">
-               Zostaw opinię na Google
+               Jazda, 5 gwiazdek! 🌟
             </a>
         </div>
 
@@ -783,8 +786,19 @@
                     const row = etap1[i];
                     const medal = realPos === 1 ? "🥇 " : (realPos === 2 ? "🥈 " : "🥉 ");
                     const style = realPos === 1 ? ' style="color:#ffd700; font-weight:bold; font-size:15px;"' : (realPos === 2 ? ' style="color:#c0c0c0;"' : ' style="color:#cd7f32;"');
-                    html += `<tr${style}><td>${medal}${realPos}</td><td>${escapeHtml(row.name)}</td><td>${row.score}</td></tr>`;
+                    const nameExtra = realPos === 1 ? " 👑 KRÓL PIANY" : "";
+                    html += `<tr${style}><td>${medal}${realPos}</td><td>${escapeHtml(row.name)}${nameExtra}</td><td>${row.score}</td></tr>`;
                 }
+                if (board[0]) {
+                    html += `<tr><td colspan="3" style="color:#ffd700; font-size:11px; text-align:center; padding:4px;">🍻 ${escapeHtml(board[0].name)} – bar stoi, piana leci, legenda rośnie</td></tr>`;
+                }
+            }
+            
+            // podpis pod ostatnim w rankingu
+            if (board.length >= 2) {
+                const last = board[board.length - 1];
+                const lastPos = board.length;
+                html += `<tr><td colspan="3" style="color:#888; font-size:11px; text-align:center; padding:6px 4px;">🥔 ${lastPos}. ${escapeHtml(last.name)} – ostatni na liście, ale w pubie i tak dostanie kartacza</td></tr>`;
             }
             
             tbody.innerHTML = html;
