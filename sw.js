@@ -1,4 +1,4 @@
-const CACHE_NAME = 'grunwald-puzzli-v5';
+const CACHE_NAME = 'grunwald-puzzli-v6';
 
 const ASSETS = [
   './',

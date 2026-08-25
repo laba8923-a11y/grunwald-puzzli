@@ -123,7 +123,7 @@
                     <tr><th>Msc.</th><th>Nick</th><th>Wynik</th></tr>
                 </thead>
                 <tbody id="leaderboard-body">
-                    <tr><td colspan="3"><span class="spinner"></span>Ładowanie rankingu...</td></tr>
+                    <tr><td colspan="3"><span class='spinner'></span>Ładowanie rankingu...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -625,7 +625,7 @@
                 playerName + ", Twój wynik: " + score + " punktów!";
             
             // zapis + pobranie globalnego rankingu
-            document.getElementById("leaderboard-body").innerHTML = "<tr><td colspan='3'><span class="spinner"></span>Ładowanie rankingu globalnego...</td></tr>";
+            document.getElementById("leaderboard-body").innerHTML = "<tr><td colspan='3'><span class='spinner'></span>Ładowanie rankingu globalnego...</td></tr>";
             saveScore(playerName, score).then(() => loadLeaderboard()).catch(() => loadLeaderboard());
             // oceny idą na Google
         }
