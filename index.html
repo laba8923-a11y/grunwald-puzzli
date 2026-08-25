@@ -56,6 +56,35 @@
         
         .combo { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); color: #d4af37; font-size: 22px; font-weight: bold; text-shadow: 0 0 10px #000; z-index: 8; opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; }
         .combo.show { opacity: 1; transform: translateX(-50%) scale(1.2); }
+        .float-pts {
+            position: absolute; pointer-events: none; z-index: 20;
+            font-weight: bold; font-size: 18px; color: #7CFC00;
+            text-shadow: 0 0 8px #000; animation: floatUp 0.8s ease-out forwards;
+        }
+        .float-pts.bad { color: #ff4d4d; }
+        #barman-line {
+            position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+            width: 94%; max-width: 420px; z-index: 15;
+            background: rgba(0,0,0,0.75); border: 1px solid #d4af37;
+            border-radius: 12px; padding: 8px 12px; font-size: 13px;
+            color: #f0e6c8; text-align: center; line-height: 1.35;
+            pointer-events: none; opacity: 0; transition: opacity 0.3s;
+        }
+        #barman-line.show { opacity: 1; }
+        #title-badge {
+            display: inline-block; margin-top: 6px; padding: 4px 12px;
+            background: linear-gradient(135deg, #3a2f00, #1a1500);
+            border: 1px solid #d4af37; border-radius: 20px;
+            color: #ffd700; font-size: 13px; font-weight: bold;
+        }
+        #over-quote {
+            font-size: 13px; color: #c9a227; font-style: italic;
+            margin: 8px 0; line-height: 1.4;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-60px) scale(1.3); }
+        }
         
         #tutorial {
             position: absolute; inset: 0; background: rgba(0,0,0,0.85);
@@ -81,10 +110,10 @@
     <div id="screen-start">
         <div class="box">
             <h1>Grunwald & Puzzli</h1>
-            <p>Wpisz swoje imię i zmierz się w dmuchaniu z mieszkańcami Olecka! Łap przysmaki, uważaj na osy, rachunki i puzzle.</p>
-            <input type="text" id="player-name" placeholder="Twoje imię lub nick" maxlength="12" autocomplete="off" onfocus="this.scrollIntoView({behavior:'smooth', block:'center'})">
-            <button onclick="requestMicAndStart()">Zatwierdź i dmuchaj 🌬️</button>
-            <button class="secondary" onclick="startWithoutMic()">Graj bez mikrofonu (dotyk)</button>
+            <p>Wpisz ksywkę i dmuchaj o honor Olecka. Łap kartacze, unikaj os i rachunków – tu płaci się pianą, nie gotówką.</p>
+            <input type="text" id="player-name" placeholder="Twoja ksywka (max 12 znaków)" maxlength="12" autocomplete="off" onfocus="this.scrollIntoView({behavior:'smooth', block:'center'})">
+            <button onclick="requestMicAndStart()">Dmucham, bo mogę 🌬️</button>
+            <button class="secondary" onclick="startWithoutMic()">Bez micu – tylko paluch 👆</button>
         </div>
     </div>
 
@@ -101,22 +130,25 @@
             <div id="piana-stream"></div>
             <img id="player-image" src="nalewak.png" alt="Nalewak">
         </div>
+        <div id="barman-line">Barman: No to dmuchaj, nie stój jak słup...</div>
     </div>
 
     <!-- EKRAN GAME OVER -->
     <div id="screen-over">
         <div class="box" style="margin-top:10px;">
-            <h1 style="color:#ff4d4d;">Koniec tchu!</h1>
+            <h1 style="color:#ff4d4d;">Piana padła!</h1>
             <p id="final-score" style="font-size:18px; font-weight:bold;"></p>
+            <div id="title-badge"></div>
+            <p id="over-quote"></p>
             <p id="share-rank-info" style="font-size:13px; color:#d4af37; margin:8px 0;"></p>
             <button id="share-btn" onclick="shareResult()" style="background:linear-gradient(135deg,#25D366,#128C7E); margin-top:8px;">
-                Udostępnij wynik 📤
+                Pochwal się wynikiem 📤
             </button>
         </div>
         
         <div class="box">
-            <h1>🏆 Ranking Głodomorów</h1>
-            <p style="font-size:12px; color:#aaa; margin-bottom:4px;">Od 20. miejsca do 1. miejsca (etapy)</p>
+            <h1>🏆 Hall of Fame Głodomorów</h1>
+            <p style="font-size:12px; color:#aaa; margin-bottom:4px;">Od dna do tronu (etapy 20 → 1)</p>
             <p id="leader-diff" style="font-size:13px; color:#d4af37; margin-bottom:8px;"></p>
             <table class="leaderboard-table">
                 <thead>
@@ -126,13 +158,16 @@
                     <tr><td colspan="3"><span class='spinner'></span>Ładowanie rankingu...</td></tr>
                 </tbody>
             </table>
+            <button type="button" id="btn-full-list" onclick="toggleFullList()" class="secondary" style="margin-top:10px; font-size:13px; padding:10px 16px;">
+                Pokaż całe TOP 20 👀
+            </button>
         </div>
 
         <div class="box" id="rating-box">
-            <h1>Daj nam 5 gwiazdek ⭐</h1>
+            <h1>Pięć gwiazdek albo płaczemy ⭐</h1>
             <p style="font-size:14px; margin:8px 0; color:#ffcc00; line-height:1.4;">
-                Za każdą ★ barman leje równo.<br>
-                Za 5 ★ – piana sama się nie kończy 🍻
+                Google nie nalewa piwa – ale 5 ★ robi robotę.<br>
+                Kliknij, zanim barman zacznie szlochać 😭
             </p>
             <div class="stars" id="star-container" style="cursor:pointer;" onclick="openGoogleReview()">
                 <span class="star active">★</span>
@@ -141,16 +176,16 @@
                 <span class="star active">★</span>
                 <span class="star active">★</span>
             </div>
-            <p style="font-size:12px; color:#aaa; margin-top:6px;">Kliknij gwiazdki – Google otworzy się samo</p>
+            <p style="font-size:12px; color:#aaa; margin-top:6px;">Pięć kliknięć bliżej legendarnego statusu</p>
             <a id="google-review-btn" href="https://g.page/r/CZON1XODkGVCEAg/review" target="_blank" rel="noopener"
                style="display:inline-block; background:#4285F4; color:white; padding:12px 20px; border-radius:25px; text-decoration:none; font-weight:bold; margin-top:10px; font-size:14px; box-shadow:0 4px 15px rgba(66,133,244,0.4);">
-               Jazda, 5 gwiazdek! 🌟
+               Idę na Google dać 5 ★
             </a>
         </div>
 
         <div class="box">
-            <p>W Pubie Grunwald & 12 Puzzli Cafe na placu Wolności nie musisz dmuchać na zimne! Wpadnij na kartacze i pizzę na żywo!</p>
-            <button onclick="restartGame()">Zagraj jeszcze raz 🔄</button>
+            <p>Pub Grunwald & 12 Puzzli, plac Wolności – tu piana jest prawdziwa, a kartacze nie uciekają z ekranu.</p>
+            <button onclick="restartGame()">Jeszcze jedna runda 🔄</button>
         </div>
     </div>
 
@@ -158,11 +193,11 @@
     <div id="tutorial">
         <div class="box">
             <h2>Jak grać?</h2>
-            <p>🌬️ <b>Dmuchaj</b> lub <b>trzymaj palec</b> – piana rośnie.</p>
-            <p>👈👉 <b>Przesuwaj palcem</b> / przechylaj telefon – celuj nalewakiem.</p>
-            <p>🍕 Łap jedzenie. 🐝 Unikaj os, rachunków i puzzli.</p>
-            <p>⚡ 5 złapań z rzędu = <b>Złota piana</b> (szerszy strumień)!</p>
-            <button onclick="closeTutorial()">Rozumiem, gramy!</button>
+            <p>🌬️ <b>Dmuchaj</b> albo trzymaj palec – piana idzie w górę.</p>
+            <p>👈👉 Przesuwaj / przechylaj – celuj jak barman po trzecim piwie.</p>
+            <p>🍕 Kartacz = szczęście. 🐝 Osa = dramat. 💸 Rachunek = trauma.</p>
+            <p>⚡ 5 z rzędu = <b>Złota piana</b> (szeroki strumień, pełen luz).</p>
+            <button onclick="closeTutorial()">Ok, lejemy! 🍺</button>
         </div>
     </div>
 
@@ -192,6 +227,66 @@
         let lastCatchTime = 0;
         let touchHold = false;
         let lastBoard = [];
+        let showFullList = false;
+        let lastBarmanAt = 0;
+        let barmanTimer = null;
+
+        const BARMAN_LINES = [
+            "No to dmuchaj, nie stój jak słup przy bufecie.",
+            "Kartacz w pianie – klasyka Olecka.",
+            "Osa?! W pubie?! To już personalne.",
+            "Rachunek leci – ktoś tu nie zamknął tablicy.",
+            "Piana rośnie ładniej niż moje napiwki.",
+            "Combo? Barman kiwa z szacunkiem.",
+            "Puzzle w powietrzu – Dwanaście Puzzli się kłania.",
+            "Trzymaj kurs, nalewak nie jest GPS-em.",
+            "Za taką pianę dałbym stolnik. Prawie.",
+            "Życie ucieka szybciej niż happy hour.",
+            "Złota piana! To już nie gra, to ceremonia.",
+            "Jeszcze jeden kartacz i legenda lokalna.",
+            "Nie dmuchaj w stronę osy. Serio.",
+            "Plac Wolności patrzy. Daj czadu.",
+            "Piwo złapane – barman uśmiecha się pierwszy raz od środy."
+        ];
+
+        const OVER_QUOTES = [
+            "Piana opadła, ale honor Olecka stoi.",
+            "Nawet mistrz czasem kończy na sucho.",
+            "Wracaj – lodówka w pubie nie zapełni się sama.",
+            "Barman notuje wynik. Długopisem. Na serwetce.",
+            "To nie porażka – to przerwa na stolnik.",
+            "Głodomory pamiętają. Ranking też.",
+            "Następnym razem mniej os, więcej pizzy.",
+            "Kto nie pada, nie wstaje do drugiej rundy."
+        ];
+
+        function getTitleForScore(sc) {
+            if (sc >= 200) return "🏆 Mit Olecka";
+            if (sc >= 150) return "👑 Król Piany";
+            if (sc >= 100) return "🥇 Mistrz Nalewaka";
+            if (sc >= 60) return "🍺 Stały klient";
+            if (sc >= 30) return "🫧 Piana z kranu";
+            if (sc >= 1) return "😅 Nowicjusz od tchu";
+            return "💤 Spałeś przy bufecie";
+        }
+
+        function showBarman(msg) {
+            const el = document.getElementById("barman-line");
+            if (!el) return;
+            el.textContent = "Barman: " + msg;
+            el.classList.add("show");
+            clearTimeout(barmanTimer);
+            barmanTimer = setTimeout(() => el.classList.remove("show"), 3200);
+        }
+
+        function maybeBarman(forceMsg) {
+            const now = performance.now();
+            if (!forceMsg && now - lastBarmanAt < 4500) return;
+            lastBarmanAt = now;
+            const msg = forceMsg || BARMAN_LINES[Math.floor(Math.random() * BARMAN_LINES.length)];
+            showBarman(msg);
+        }
+
         let playerX = 0.5; // 0..1 pozycja nalewaka
         let powerUntil = 0; // timestamp złotej piany
         let dragging = false;
@@ -333,6 +428,7 @@
             }
             ensureSfx();
             updatePlayerPos();
+            maybeBarman("No to dmuchaj, nie stój jak słup przy bufecie.");
         }
 
         function updatePlayerPos() {
@@ -379,9 +475,9 @@
 
         function showBlowHint() {
             if (useMic) {
-                blowHint.textContent = "DMUCHAJ + PRZESUWAJ PALCEM / PRZECHYLAJ!";
+                blowHint.textContent = "DMUCHAJ I CELUJ – NALEWAK JEŹDZI!";
             } else {
-                blowHint.textContent = "TRZYMAJ I PRZESUWAJ – CELUJ PIANĄ!";
+                blowHint.textContent = "TRZYMAJ + PRZESUWAJ = SNOOPER BARMANA";
             }
             blowHint.classList.add("show");
             setTimeout(() => blowHint.classList.remove("show"), 4000);
@@ -391,6 +487,11 @@
         function updateHUD() {
             document.getElementById("hud-score").innerText = "Punkty: " + score;
             document.getElementById("hud-lives").innerText = "❤️".repeat(lives) + "🖤".repeat(3 - lives);
+            const sg = document.getElementById("screen-game");
+            if (sg) {
+                if (lives === 1) sg.style.filter = "saturate(0.7) contrast(1.05)";
+                else sg.style.filter = "";
+            }
         }
 
         // ========== SPAWN ==========
@@ -503,16 +604,21 @@
                         lastCatchTime = performance.now();
                         showCombo();
                         sfxCatch();
+                        showFloatPts(it.points, true);
                         foamHeight = Math.min(foamHeight + 20, canvas.height * 0.5);
+                        if (Math.random() < 0.35) maybeBarman();
                         if (combo >= 5) {
                             powerUntil = performance.now() + 5000;
                             comboEl.textContent = "ZŁOTA PIANA! ✨";
                             comboEl.classList.add("show");
+                            maybeBarman("Złota piana! To już nie gra, to ceremonia.");
                         }
                     } else {
                         lives--;
                         combo = 0;
                         sfxHit();
+                        showFloatPts(0, false);
+                        maybeBarman(it.asset === 'osa' ? 'Osa w pianie – klasyczny poniedziałek.' : (it.asset === 'rachunek' ? 'Rachunek! Ktoś tu nie domknął tablicy.' : 'Puzzle w twarz – Dwanaście Puzzli się odezwało.'));
                         document.getElementById("screen-game").style.animation = "none";
                         void document.getElementById("screen-game").offsetWidth;
                         document.getElementById("screen-game").style.animation = "shake 0.3s";
@@ -561,6 +667,16 @@
             const itemTop = it.y;
             
             return itemBottom > streamTop && itemTop < streamBottom;
+        }
+
+        function showFloatPts(pts, good) {
+            const el = document.createElement("div");
+            el.className = "float-pts" + (good ? "" : " bad");
+            el.textContent = good ? ("+" + pts) : "💔";
+            el.style.left = (playerX * 100) + "%";
+            el.style.bottom = (120 + Math.random() * 40) + "px";
+            document.getElementById("screen-game").appendChild(el);
+            setTimeout(() => el.remove(), 850);
         }
 
         function showCombo() {
@@ -624,8 +740,13 @@
             document.getElementById("screen-game").style.display = "none";
             document.getElementById("screen-over").style.display = "flex";
             
-            document.getElementById("final-score").innerText = 
+            const title = getTitleForScore(score);
+            document.getElementById("final-score").innerText =
                 playerName + ", Twój wynik: " + score + " punktów!";
+            const badge = document.getElementById("title-badge");
+            if (badge) badge.textContent = title;
+            const q = document.getElementById("over-quote");
+            if (q) q.textContent = "„" + OVER_QUOTES[Math.floor(Math.random() * OVER_QUOTES.length)] + "”";
             
             // zapis + pobranie globalnego rankingu
             document.getElementById("leaderboard-body").innerHTML = "<tr><td colspan='3'><span class='spinner'></span>Ładowanie rankingu globalnego...</td></tr>";
@@ -708,7 +829,7 @@
             const shareInfo = document.getElementById("share-rank-info");
             
             if (board.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='3'>Brak rekordów – bądź pierwszy!</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='3'>Pusto jak w lodówce w poniedziałek – wpisz się pierwszy!</td></tr>";
                 if (diffEl) diffEl.innerText = "";
                 return;
             }
@@ -732,10 +853,10 @@
             
             if (diffEl) {
                 if (score >= topScore) {
-                    diffEl.innerHTML = "🥇 <b>JESTEŚ MISTRZEM GRUNWALDU! (1. miejsce)</b>";
+                    diffEl.innerHTML = "🥇 <b>Siedzisz na tronie piany! (1. miejsce)</b>";
                 } else {
                     const brakuje = topScore - score;
-                    diffEl.innerHTML = "Do 1. miejsca brakuje Ci <b>" + brakuje + "</b> pkt";
+                    diffEl.innerHTML = "Do korony brakuje Ci <b>" + brakuje + "</b> pkt";
                 }
             }
             
@@ -753,52 +874,92 @@
                 }
             }
             
+            renderLeaderboardTable();
+        }
+
+        function toggleFullList() {
+            showFullList = !showFullList;
+            const btn = document.getElementById("btn-full-list");
+            if (btn) btn.textContent = showFullList ? "Zwiń listę" : "Pokaż całe TOP 20 👀";
+            renderLeaderboardTable();
+        }
+
+        function renderLeaderboardTable() {
+            const board = lastBoard;
+            const tbody = document.getElementById("leaderboard-body");
+            const diffEl = document.getElementById("leader-diff");
+            const shareInfo = document.getElementById("share-rank-info");
+            if (!tbody) return;
+            
+            if (!board || board.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='3'>Pusto jak w lodówce w poniedziałek – wpisz się pierwszy!</td></tr>";
+                return;
+            }
+            
             let html = "";
             
-            // ETAP 3: miejsca 11-20 (od 20 do 11)
-            const etap3 = board.slice(10, 20);
-            if (etap3.length > 0) {
-                html += `<tr><td colspan="3" style="background:#222; color:#888; font-size:11px; padding:8px 4px; text-align:center;">—— ETAP 3: miejsca 11–20 ——</td></tr>`;
-                for (let i = etap3.length - 1; i >= 0; i--) {
-                    const realPos = 10 + i + 1;
-                    const row = etap3[i];
-                    html += `<tr><td>${realPos}</td><td>${escapeHtml(row.name)}</td><td>${row.score}</td></tr>`;
-                }
-            }
-            
-            // ETAP 2: miejsca 4-10
-            const etap2 = board.slice(3, 10);
-            if (etap2.length > 0) {
-                html += `<tr><td colspan="3" style="background:#2a2a1a; color:#c9a227; font-size:11px; padding:8px 4px; text-align:center;">—— ETAP 2: miejsca 4–10 ——</td></tr>`;
-                for (let i = etap2.length - 1; i >= 0; i--) {
-                    const realPos = 3 + i + 1;
-                    const row = etap2[i];
-                    html += `<tr><td>${realPos}</td><td>${escapeHtml(row.name)}</td><td>${row.score}</td></tr>`;
-                }
-            }
-            
-            // ETAP 1: Mistrzowie 1-3 (od 3 do 1)
-            const etap1 = board.slice(0, 3);
-            if (etap1.length > 0) {
-                html += `<tr><td colspan="3" style="background:#3a2f00; color:#ffd700; font-size:12px; padding:8px 4px; text-align:center; font-weight:bold;">—— ETAP 1: MISTRZOWIE (1–3) ——</td></tr>`;
-                for (let i = etap1.length - 1; i >= 0; i--) {
+            if (showFullList) {
+                // Pełna lista od 20 do 1
+                html += `<tr><td colspan="3" style="background:#222; color:#d4af37; font-size:11px; padding:8px 4px; text-align:center;">—— PEŁNY RANKING TOP 20 (od końca) ——</td></tr>`;
+                for (let i = board.length - 1; i >= 0; i--) {
                     const realPos = i + 1;
-                    const row = etap1[i];
-                    const medal = realPos === 1 ? "🥇 " : (realPos === 2 ? "🥈 " : "🥉 ");
-                    const style = realPos === 1 ? ' style="color:#ffd700; font-weight:bold; font-size:15px;"' : (realPos === 2 ? ' style="color:#c0c0c0;"' : ' style="color:#cd7f32;"');
-                    const nameExtra = realPos === 1 ? " 👑 KRÓL PIANY" : "";
-                    html += `<tr${style}><td>${medal}${realPos}</td><td>${escapeHtml(row.name)}${nameExtra}</td><td>${row.score}</td></tr>`;
+                    const row = board[i];
+                    let style = "";
+                    let extra = "";
+                    if (realPos === 1) {
+                        style = ' style="color:#ffd700; font-weight:bold; font-size:15px;"';
+                        extra = " 👑 KRÓL PIANY";
+                    } else if (realPos === 2) {
+                        style = ' style="color:#c0c0c0;"';
+                    } else if (realPos === 3) {
+                        style = ' style="color:#cd7f32;"';
+                    } else if (realPos === board.length && board.length > 1) {
+                        style = ' style="color:#888; font-style:italic;"';
+                        extra = " 🥔";
+                    }
+                    const medal = realPos === 1 ? "🥇 " : (realPos === 2 ? "🥈 " : (realPos === 3 ? "🥉 " : ""));
+                    html += `<tr${style}><td>${medal}${realPos}</td><td>${escapeHtml(row.name)}${extra}</td><td>${row.score}</td></tr>`;
                 }
-                if (board[0]) {
-                    html += `<tr><td colspan="3" style="color:#ffd700; font-size:11px; text-align:center; padding:4px;">🍻 ${escapeHtml(board[0].name)} – bar stoi, piana leci, legenda rośnie</td></tr>`;
+            } else {
+                // Widok etapami (skrócony)
+                const etap3 = board.slice(10, 20);
+                if (etap3.length > 0) {
+                    html += `<tr><td colspan="3" style="background:#222; color:#888; font-size:11px; padding:8px 4px; text-align:center;">—— ETAP 3: miejsca 11–20 ——</td></tr>`;
+                    for (let i = etap3.length - 1; i >= 0; i--) {
+                        const realPos = 10 + i + 1;
+                        const row = etap3[i];
+                        html += `<tr><td>${realPos}</td><td>${escapeHtml(row.name)}</td><td>${row.score}</td></tr>`;
+                    }
                 }
-            }
-            
-            // podpis pod ostatnim w rankingu
-            if (board.length >= 2) {
-                const last = board[board.length - 1];
-                const lastPos = board.length;
-                html += `<tr><td colspan="3" style="color:#888; font-size:11px; text-align:center; padding:6px 4px;">🥔 ${lastPos}. ${escapeHtml(last.name)} – ostatni na liście, ale w pubie i tak dostanie kartacza</td></tr>`;
+                const etap2 = board.slice(3, 10);
+                if (etap2.length > 0) {
+                    html += `<tr><td colspan="3" style="background:#2a2a1a; color:#c9a227; font-size:11px; padding:8px 4px; text-align:center;">—— ETAP 2: miejsca 4–10 ——</td></tr>`;
+                    for (let i = etap2.length - 1; i >= 0; i--) {
+                        const realPos = 3 + i + 1;
+                        const row = etap2[i];
+                        html += `<tr><td>${realPos}</td><td>${escapeHtml(row.name)}</td><td>${row.score}</td></tr>`;
+                    }
+                }
+                const etap1 = board.slice(0, 3);
+                if (etap1.length > 0) {
+                    html += `<tr><td colspan="3" style="background:#3a2f00; color:#ffd700; font-size:12px; padding:8px 4px; text-align:center; font-weight:bold;">—— ETAP 1: MISTRZOWIE (1–3) ——</td></tr>`;
+                    for (let i = etap1.length - 1; i >= 0; i--) {
+                        const realPos = i + 1;
+                        const row = etap1[i];
+                        const medal = realPos === 1 ? "🥇 " : (realPos === 2 ? "🥈 " : "🥉 ");
+                        const style = realPos === 1 ? ' style="color:#ffd700; font-weight:bold; font-size:15px;"' : (realPos === 2 ? ' style="color:#c0c0c0;"' : ' style="color:#cd7f32;"');
+                        const nameExtra = realPos === 1 ? " 👑 KRÓL PIANY" : "";
+                        html += `<tr${style}><td>${medal}${realPos}</td><td>${escapeHtml(row.name)}${nameExtra}</td><td>${row.score}</td></tr>`;
+                    }
+                    if (board[0]) {
+                        html += `<tr><td colspan="3" style="color:#ffd700; font-size:11px; text-align:center; padding:4px;">🍻 ${escapeHtml(board[0].name)} – król piany, reszta tylko zlizuje pianę z kufla</td></tr>`;
+                    }
+                }
+                if (board.length >= 2) {
+                    const last = board[board.length - 1];
+                    const lastPos = board.length;
+                    html += `<tr><td colspan="3" style="color:#888; font-size:11px; text-align:center; padding:6px 4px;">🥔 ${lastPos}. ${escapeHtml(last.name)} – ostatni, ale i tak dostanie stolnik z uśmiechem</td></tr>`;
+                }
             }
             
             tbody.innerHTML = html;
