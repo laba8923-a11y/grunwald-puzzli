@@ -110,10 +110,26 @@
     <div id="screen-start">
         <div class="box">
             <h1>Grunwald & Puzzli</h1>
-            <p>Wpisz ksywkę i dmuchaj o honor Olecka. Łap kartacze, unikaj os i rachunków – tu płaci się pianą, nie gotówką.</p>
-            <input type="text" id="player-name" placeholder="Twoja ksywka (max 12 znaków)" maxlength="12" autocomplete="off" onfocus="this.scrollIntoView({behavior:'smooth', block:'center'})">
-            <button onclick="requestMicAndStart()">Dmucham, bo mogę 🌬️</button>
-            <button class="secondary" onclick="startWithoutMic()">Bez micu – tylko paluch 👆</button>
+            <p>Wpisz swoje imię i zmierz się w dmuchaniu z mieszkańcami Olecka! Łap przysmaki Pubu Grunwald & Dwunastu Puzzli – uważaj na osy, rachunki i puzzle.</p>
+            <input type="text" id="player-name" placeholder="Twoje imię lub nick" maxlength="12" autocomplete="off" onfocus="this.scrollIntoView({behavior:'smooth', block:'center'})">
+            <button onclick="requestMicAndStart()">Zatwierdź i dmuchaj 🌬️</button>
+            <button class="secondary" onclick="startWithoutMic()">Graj bez mikrofonu (tylko paluch) 👆</button>
+            <button class="secondary" onclick="showStartRanking()" style="margin-top:8px; font-size:13px;">🏆 Pokaż TOP 20</button>
+        </div>
+    </div>
+
+    <!-- PODGLĄD RANKINGU NA STARCIE -->
+    <div id="screen-rank-preview" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.88); z-index:40; overflow-y:auto; padding:24px 12px; align-items:center; flex-direction:column;">
+        <div class="box">
+            <h1>🏆 TOP 20 – Pub Grunwald & Dwanaście Puzzli</h1>
+            <p style="font-size:12px; color:#aaa; margin-bottom:8px;">Olecko · ranking globalny graczy</p>
+            <table class="leaderboard-table">
+                <thead><tr><th>Msc.</th><th>Nick</th><th>Wynik</th></tr></thead>
+                <tbody id="preview-leaderboard-body">
+                    <tr><td colspan="3"><span class='spinner'></span>Ładowanie...</td></tr>
+                </tbody>
+            </table>
+            <button onclick="hideStartRanking()" style="margin-top:12px;">Wróć do gry</button>
         </div>
     </div>
 
@@ -147,8 +163,8 @@
         </div>
         
         <div class="box">
-            <h1>🏆 Hall of Fame Głodomorów</h1>
-            <p style="font-size:12px; color:#aaa; margin-bottom:4px;">Od dna do tronu (etapy 20 → 1)</p>
+            <h1>🏆 Ranking Głodomorów</h1>
+            <p style="font-size:12px; color:#aaa; margin-bottom:4px;">Od 20. miejsca do 1. miejsca · Pub Grunwald & Dwanaście Puzzli</p>
             <p id="leader-diff" style="font-size:13px; color:#d4af37; margin-bottom:8px;"></p>
             <table class="leaderboard-table">
                 <thead>
@@ -164,10 +180,10 @@
         </div>
 
         <div class="box" id="rating-box">
-            <h1>Pięć gwiazdek albo płaczemy ⭐</h1>
+            <h1>Oceń nas na Google ⭐</h1>
             <p style="font-size:14px; margin:8px 0; color:#ffcc00; line-height:1.4;">
-                Google nie nalewa piwa – ale 5 ★ robi robotę.<br>
-                Kliknij, zanim barman zacznie szlochać 😭
+                Za każdą ★ barman leje równo.<br>
+                Pub Grunwald &amp; Dwanaście Puzzli, Olecko – daj nam 5 ★
             </p>
             <div class="stars" id="star-container" style="cursor:pointer;" onclick="openGoogleReview()">
                 <span class="star active">★</span>
@@ -176,15 +192,15 @@
                 <span class="star active">★</span>
                 <span class="star active">★</span>
             </div>
-            <p style="font-size:12px; color:#aaa; margin-top:6px;">Pięć kliknięć bliżej legendarnego statusu</p>
+            <p style="font-size:12px; color:#aaa; margin-top:6px;">Kliknij gwiazdki – opinia na Google</p>
             <a id="google-review-btn" href="https://g.page/r/CZON1XODkGVCEAg/review" target="_blank" rel="noopener"
                style="display:inline-block; background:#4285F4; color:white; padding:12px 20px; border-radius:25px; text-decoration:none; font-weight:bold; margin-top:10px; font-size:14px; box-shadow:0 4px 15px rgba(66,133,244,0.4);">
-               Idę na Google dać 5 ★
+               Zostaw 5 ★ na Google
             </a>
         </div>
 
         <div class="box">
-            <p>Pub Grunwald & 12 Puzzli, plac Wolności – tu piana jest prawdziwa, a kartacze nie uciekają z ekranu.</p>
+            <p>Pub Grunwald Cafe & Dwanaście Puzzli, Olecko – wpadnij na kartacze, pizzę i prawdziwą pianę. Nie musisz dmuchać na zimne!</p>
             <button onclick="restartGame()">Jeszcze jedna runda 🔄</button>
         </div>
     </div>
@@ -853,10 +869,10 @@
             
             if (diffEl) {
                 if (score >= topScore) {
-                    diffEl.innerHTML = "🥇 <b>Siedzisz na tronie piany! (1. miejsce)</b>";
+                    diffEl.innerHTML = "🥇 <b>JESTEŚ MISTRZEM GRUNWALDU! (1. miejsce)</b>";
                 } else {
                     const brakuje = topScore - score;
-                    diffEl.innerHTML = "Do korony brakuje Ci <b>" + brakuje + "</b> pkt";
+                    diffEl.innerHTML = "Do 1. miejsca brakuje Ci <b>" + brakuje + "</b> pkt";
                 }
             }
             
@@ -963,6 +979,46 @@
             }
             
             tbody.innerHTML = html;
+        }
+
+        async function showStartRanking() {
+            const scr = document.getElementById("screen-rank-preview");
+            if (scr) {
+                scr.style.display = "flex";
+            }
+            const tbody = document.getElementById("preview-leaderboard-body");
+            if (tbody) tbody.innerHTML = "<tr><td colspan='3'><span class='spinner'></span>Ładowanie TOP 20...</td></tr>";
+            let board = [];
+            try {
+                const res = await fetch(JSONBIN_URL + "/latest", { headers: { "X-Master-Key": JSONBIN_KEY } });
+                if (res.ok) {
+                    const data = await res.json();
+                    board = (data.record && data.record.records) ? data.record.records : [];
+                }
+            } catch (e) {}
+            if (!board.length) {
+                try { board = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch(_) {}
+            }
+            board.sort((a,b) => b.score - a.score);
+            board = board.slice(0, 20);
+            if (!board.length) {
+                tbody.innerHTML = "<tr><td colspan='3'>Brak rekordów – zagraj i bądź pierwszy!</td></tr>";
+                return;
+            }
+            let html = "";
+            board.forEach((row, i) => {
+                const pos = i + 1;
+                const medal = pos === 1 ? "🥇 " : (pos === 2 ? "🥈 " : (pos === 3 ? "🥉 " : ""));
+                const extra = pos === 1 ? " 👑" : "";
+                const style = pos === 1 ? ' style="color:#ffd700;font-weight:bold;"' : "";
+                html += `<tr${style}><td>${medal}${pos}</td><td>${escapeHtml(row.name)}${extra}</td><td>${row.score}</td></tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function hideStartRanking() {
+            const scr = document.getElementById("screen-rank-preview");
+            if (scr) scr.style.display = "none";
         }
 
         function escapeHtml(t) {
