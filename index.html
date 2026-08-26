@@ -11,8 +11,10 @@
     <meta property="og:image" content="icon.png">
     <meta property="og:type" content="website">
     <meta name="theme-color" content="#d4af37">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif; }
         body, html { width: 100%; height: 100%; overflow: hidden; background: #111; touch-action: none; }
         
         #screen-start, #screen-game, #screen-over {
@@ -23,7 +25,7 @@
         #screen-over { background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.85)), url('tlo_koncowe.jpg') no-repeat center center/cover; display: none; overflow-y: auto; justify-content: flex-start; padding-top: 30px; padding-bottom: 40px; }
         
         .box { background: rgba(0, 0, 0, 0.88); border: 2px solid #d4af37; border-radius: 15px; padding: 22px; width: 100%; max-width: 360px; box-shadow: 0 0 25px rgba(212, 175, 55, 0.35); color: white; margin-bottom: 16px; }
-        h1 { color: #d4af37; font-size: 22px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 0 10px rgba(212,175,55,0.5); }
+        h1 { font-family: 'Oswald', 'Segoe UI', sans-serif; color: #d4af37; font-size: 22px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 0 10px rgba(212,175,55,0.5); }
         p { font-size: 14px; margin-bottom: 12px; color: #ddd; line-height: 1.4; }
         
         input[type="text"] { width: 100%; padding: 13px; border-radius: 25px; border: 2px solid #d4af37; background: #222; color: white; text-align: center; font-size: 16px; margin-bottom: 14px; outline: none; }
@@ -95,6 +97,58 @@
         #tutorial .box { max-width: 340px; }
         #tutorial h2 { color: #d4af37; margin-bottom: 12px; font-size: 20px; }
         #tutorial p { font-size: 14px; color: #ddd; margin-bottom: 10px; line-height: 1.45; }
+        
+        .box {
+            animation: boxIn 0.45s ease-out;
+        }
+        @keyframes boxIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .stars .star {
+            animation: starPulse 2s ease-in-out infinite;
+        }
+        .stars .star:nth-child(2) { animation-delay: 0.15s; }
+        .stars .star:nth-child(3) { animation-delay: 0.3s; }
+        .stars .star:nth-child(4) { animation-delay: 0.45s; }
+        .stars .star:nth-child(5) { animation-delay: 0.6s; }
+        @keyframes starPulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px #ffcc00); }
+            50% { transform: scale(1.12); filter: drop-shadow(0 0 10px #ffcc00); }
+        }
+        #challenge-box {
+            margin-top: 12px; padding: 10px 12px;
+            background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(0,0,0,0.4));
+            border: 1px dashed #d4af37; border-radius: 12px;
+            font-size: 13px; color: #f0e6c8; line-height: 1.4;
+            animation: challengeGlow 3s ease-in-out infinite;
+        }
+        #challenge-box b { color: #ffd700; }
+        #challenge-box.done { border-style: solid; border-color: #7CFC00; color: #b8f5b8; }
+        @keyframes challengeGlow {
+            0%, 100% { box-shadow: 0 0 0 rgba(212,175,55,0); }
+            50% { box-shadow: 0 0 14px rgba(212,175,55,0.35); }
+        }
+        #weekend-banner {
+            display: none; font-size: 12px; color: #ffd700; margin-bottom: 8px;
+            letter-spacing: 0.5px; text-transform: uppercase;
+            animation: blinkGold 1.5s ease-in-out infinite;
+        }
+        #weekend-banner.show { display: block; }
+        @keyframes blinkGold {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.65; }
+        }
+        #thanks-barman {
+            display: none; margin-top: 10px; font-size: 13px; color: #7CFC00;
+            animation: boxIn 0.4s ease-out;
+        }
+        #thanks-barman.show { display: block; }
+        button {
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        button:active { transform: scale(0.96); }
+
         .spinner {
             display: inline-block; width: 18px; height: 18px;
             border: 2px solid #d4af37; border-top-color: transparent;
@@ -110,7 +164,9 @@
     <div id="screen-start">
         <div class="box">
             <h1>Grunwald & Puzzli</h1>
-            <p>Wpisz swoje imię i zmierz się w dmuchaniu z mieszkańcami Olecka! Łap przysmaki Pubu Grunwald & Dwunastu Puzzli – uważaj na osy, rachunki i puzzle.</p>
+            <p id="weekend-banner">🍺 Weekendowa piana bije mocniej – dmuchaj o honor Olecka!</p>
+            <p id="start-desc">Wpisz swoje imię i zmierz się w dmuchaniu z mieszkańcami Olecka! Łap przysmaki Pubu Grunwald & Dwunastu Puzzli – uważaj na osy, rachunki i puzzle.</p>
+            <div id="challenge-box"><b>Wyzwanie dnia:</b> <span id="challenge-text">…</span></div>
             <input type="text" id="player-name" placeholder="Twoje imię lub nick" maxlength="12" autocomplete="off" onfocus="this.scrollIntoView({behavior:'smooth', block:'center'})">
             <button onclick="requestMicAndStart()">Zatwierdź i dmuchaj 🌬️</button>
             <button class="secondary" onclick="startWithoutMic()">Graj bez mikrofonu (tylko paluch) 👆</button>
@@ -197,6 +253,7 @@
                style="display:inline-block; background:#4285F4; color:white; padding:12px 20px; border-radius:25px; text-decoration:none; font-weight:bold; margin-top:10px; font-size:14px; box-shadow:0 4px 15px rgba(66,133,244,0.4);">
                Zostaw 5 ★ na Google
             </a>
+            <p id="thanks-barman">Dzięki – barman kiwa z szacunkiem 🍻</p>
         </div>
 
         <div class="box">
@@ -244,6 +301,117 @@
         let touchHold = false;
         let lastBoard = [];
         let showFullList = false;
+
+        const DAILY_CHALLENGES = [
+            { id: "kartacz3", text: "Złap 3 kartacze bez straty życia", type: "kartacz", need: 3, noHit: true },
+            { id: "pizza2", text: "Złap 2 pizze z rzędu (combo)", type: "pizza", need: 2, combo: true },
+            { id: "piwo3", text: "Złap 3 piwa w jednej rundzie", type: "piwo", need: 3 },
+            { id: "score50", text: "Zdobądź 50 pkt bez utraty życia", type: "score", need: 50, noHit: true },
+            { id: "placek4", text: "Złap 4 placki", type: "placek", need: 4 },
+            { id: "combo5", text: "Zrób combo x5 (złota piana)", type: "combo", need: 5 }
+        ];
+        let dailyChallenge = null;
+        let challengeProgress = 0;
+        let challengeHit = false;
+        let challengeDone = false;
+        let pourOsc = null;
+
+        function dayKey() {
+            const d = new Date();
+            return d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate();
+        }
+
+        function initDailyChallenge() {
+            const key = "grunwald_daily_" + dayKey();
+            let saved = null;
+            try { saved = JSON.parse(localStorage.getItem(key) || "null"); } catch(_) {}
+            if (saved && saved.id) {
+                dailyChallenge = DAILY_CHALLENGES.find(c => c.id === saved.id) || DAILY_CHALLENGES[0];
+                challengeDone = !!saved.done;
+            } else {
+                const idx = Math.abs(dayKey().split("").reduce((a,ch)=>a+ch.charCodeAt(0),0)) % DAILY_CHALLENGES.length;
+                dailyChallenge = DAILY_CHALLENGES[idx];
+                try { localStorage.setItem(key, JSON.stringify({ id: dailyChallenge.id, done: false })); } catch(_) {}
+                challengeDone = false;
+            }
+            challengeProgress = 0;
+            challengeHit = false;
+            const el = document.getElementById("challenge-text");
+            const box = document.getElementById("challenge-box");
+            if (el && dailyChallenge) {
+                el.textContent = challengeDone
+                    ? dailyChallenge.text + " ✓ ZROBIONE!"
+                    : dailyChallenge.text;
+            }
+            if (box) box.classList.toggle("done", challengeDone);
+        }
+
+        function markChallengeDone() {
+            if (challengeDone || !dailyChallenge) return;
+            challengeDone = true;
+            const key = "grunwald_daily_" + dayKey();
+            try { localStorage.setItem(key, JSON.stringify({ id: dailyChallenge.id, done: true })); } catch(_) {}
+            const el = document.getElementById("challenge-text");
+            const box = document.getElementById("challenge-box");
+            if (el) el.textContent = dailyChallenge.text + " ✓ ZROBIONE!";
+            if (box) box.classList.add("done");
+            maybeBarman("Wyzwanie dnia zaliczone! Barman stawia mentalnego stolnika.");
+            showFloatPts(25, true);
+            score += 15;
+            updateHUD();
+        }
+
+        function trackChallengeCatch(it) {
+            if (!dailyChallenge || challengeDone) return;
+            if (dailyChallenge.noHit && challengeHit) return;
+            const t = dailyChallenge.type;
+            if (t === "score") {
+                if (!challengeHit && score >= dailyChallenge.need) markChallengeDone();
+                return;
+            }
+            if (t === "combo") {
+                if (combo >= dailyChallenge.need) markChallengeDone();
+                return;
+            }
+            if (it && it.isGood && it.asset === t) {
+                challengeProgress++;
+                if (challengeProgress >= dailyChallenge.need) markChallengeDone();
+            }
+        }
+
+        function initWeekendBanner() {
+            const day = new Date().getDay(); // 0 Sun ... 6 Sat
+            const ban = document.getElementById("weekend-banner");
+            if (ban && (day === 0 || day === 5 || day === 6)) {
+                ban.classList.add("show");
+            }
+        }
+
+        function startPourSound() {
+            const ctx = ensureSfx();
+            if (!ctx || pourOsc) return;
+            try {
+                pourOsc = ctx.createOscillator();
+                const g = ctx.createGain();
+                pourOsc.type = "sine";
+                pourOsc.frequency.value = 180;
+                g.gain.value = 0.04;
+                pourOsc.connect(g);
+                g.connect(ctx.destination);
+                pourOsc.start();
+                // lekki „bulgot”
+                pourOsc.frequency.linearRampToValueAtTime(220, ctx.currentTime + 0.4);
+            } catch(e) { pourOsc = null; }
+        }
+        function stopPourSound() {
+            if (!pourOsc) return;
+            try {
+                const ctx = ensureSfx();
+                pourOsc.stop(ctx ? ctx.currentTime + 0.05 : 0);
+            } catch(e) {}
+            pourOsc = null;
+        }
+
         let lastBarmanAt = 0;
         let barmanTimer = null;
 
@@ -406,6 +574,8 @@
             foamHeight = 0;
             playerX = 0.5;
             powerUntil = 0;
+            challengeProgress = 0;
+            challengeHit = false;
             gameActive = true;
             pianaEl.classList.remove("golden");
             updatePlayerPos();
@@ -503,6 +673,9 @@
         function updateHUD() {
             document.getElementById("hud-score").innerText = "Punkty: " + score;
             document.getElementById("hud-lives").innerText = "❤️".repeat(lives) + "🖤".repeat(3 - lives);
+            if (dailyChallenge && dailyChallenge.type === "score" && !challengeDone && !challengeHit && score >= dailyChallenge.need) {
+                markChallengeDone();
+            }
             const sg = document.getElementById("screen-game");
             if (sg) {
                 if (lives === 1) sg.style.filter = "saturate(0.7) contrast(1.05)";
@@ -594,6 +767,8 @@
             const targetHeight = currentVolume * Math.min(canvas.height * 0.55, 320);
             foamHeight += (targetHeight - foamHeight) * 0.35;
             pianaEl.style.height = Math.max(0, foamHeight) + "px";
+            if (foamHeight > 40) startPourSound();
+            else stopPourSound();
             
             // Przyspieszenie gry
             speedMultiplier = 1 + Math.min(1.8, score / 180);
@@ -622,6 +797,7 @@
                         sfxCatch();
                         showFloatPts(it.points, true);
                         foamHeight = Math.min(foamHeight + 20, canvas.height * 0.5);
+                        trackChallengeCatch(it);
                         if (Math.random() < 0.35) maybeBarman();
                         if (combo >= 5) {
                             powerUntil = performance.now() + 5000;
@@ -634,6 +810,7 @@
                         combo = 0;
                         sfxHit();
                         showFloatPts(0, false);
+                        challengeHit = true;
                         maybeBarman(it.asset === 'osa' ? 'Osa w pianie – klasyczny poniedziałek.' : (it.asset === 'rachunek' ? 'Rachunek! Ktoś tu nie domknął tablicy.' : 'Puzzle w twarz – Dwanaście Puzzli się odezwało.'));
                         document.getElementById("screen-game").style.animation = "none";
                         void document.getElementById("screen-game").offsetWidth;
@@ -737,6 +914,7 @@
         // ========== KONIEC GRY ==========
         function endGame() {
             gameActive = false;
+            stopPourSound();
             sfxOver();
             if (gameLoopId) cancelAnimationFrame(gameLoopId);
             if (spawnTimeoutId) clearTimeout(spawnTimeoutId);
@@ -1057,8 +1235,9 @@
             
             return playerName + " – " + score + " pkt w grze Grunwald & Puzzli!\n" +
                    posText + "\n" +
-                   "Pub Grunwald & 12 Puzzli Cafe, Olecko\n" +
-                   "Zagraj i przebij mój wynik!";
+                   "Pub Grunwald Cafe & Dwanaście Puzzli, Olecko\n" +
+                   "Zagraj: https://laba8923-a11y.github.io/grunwald-puzzli/\n" +
+                   "#GrunwaldPuzzli #OleckoDmucha";
         }
 
         async function shareResult() {
@@ -1093,6 +1272,8 @@
 
         function openGoogleReview() {
             window.open("https://g.page/r/CZON1XODkGVCEAg/review", "_blank", "noopener");
+            const t = document.getElementById("thanks-barman");
+            if (t) t.classList.add("show");
         }
 
         function rateLokal(stars) {
@@ -1114,12 +1295,13 @@
             lastBoard = [];
         }
 
-        // Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
+        window.addEventListener('load', () => {
+            initDailyChallenge();
+            initWeekendBanner();
+            if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail', err));
-            });
-        }
+            }
+        });
 
         // shake animation
         const style = document.createElement('style');
